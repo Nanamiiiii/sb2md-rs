@@ -16,6 +16,7 @@ lazy_static! {
     static ref RGX_LIST: Regex = Regex::new(r"^([\s|\t]+)([^\s|\t]+)").unwrap();
     static ref RGX_SB_LINK_WITH_LINK: Regex = Regex::new(r"\[([^\]]+)\]([^\(])").unwrap();
     static ref RGX_SB_LINK_WITHOUT_LINK: Regex = Regex::new(r"\[([^\[]+)\]").unwrap();
+    static ref RGX_SB_HASHTAG: Regex = Regex::new(r"\#([0-9a-zA-Z_]+)").unwrap();
 }
 
 pub enum TokenType {
@@ -106,7 +107,8 @@ impl ToMd {
                     } else {
                         // check if it includes link
                         let has_link = RGX_LINK_PREFIX.is_match(&line[..])
-                            || RGX_LINK_SUFFIX.is_match(&line[..]);
+                            || RGX_LINK_SUFFIX.is_match(&line[..])
+                            || RGX_SB_HASHTAG.is_match(&line[..]);
                         // gyazo image to md
                         let replaced_text =
                             RGX_GYAZO_IMG.replace_all(&line[..], "![]($1)").into_owned();
@@ -124,6 +126,10 @@ impl ToMd {
                         // strong to md
                         let replaced_text = RGX_STRONG
                             .replace_all(&replaced_text, "**$2**")
+                            .into_owned();
+                        // Hashtag to md (Link)
+                        let replaced_text = RGX_SB_HASHTAG
+                            .replace_all(&replaced_text, "[$1](./$1)")
                             .into_owned();
                         // sblink to md
                         let replaced_text = if has_link {
