@@ -32,6 +32,17 @@ pub struct ToMd {
     output: String,
 }
 
+#[cfg(not(target_family = "wasm"))]
+impl ToMd {
+    pub fn new_from_lines(lines: Vec<String>) -> Self {
+        Self {
+            lines,
+            token_type: TokenType::Other,
+            output: String::new(),
+        }
+    }
+}
+
 #[wasm_bindgen]
 impl ToMd {
     #[wasm_bindgen]
@@ -42,6 +53,21 @@ impl ToMd {
             .collect::<Vec<String>>();
         Self {
             lines,
+            token_type: TokenType::Other,
+            output: String::new(),
+        }
+    }
+
+    #[cfg(target_family = "wasm")]
+    #[wasm_bindgen]
+    pub fn new_from_lines(lines: Box<[JsValue]>) -> Self {
+        let mut vec_lines: Vec<String> = Vec::new();
+        for i in 0..lines.len() {
+            vec_lines.push(JsValue::as_string(&lines[i]).unwrap());
+        }
+
+        Self {
+            lines: vec_lines,
             token_type: TokenType::Other,
             output: String::new(),
         }

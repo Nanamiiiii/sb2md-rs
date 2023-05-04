@@ -55,6 +55,18 @@ mod tests {
     }
 
     #[test]
+    fn test_hashtag() {
+        let text = ScrapboxPage::new(vec![
+            ScrapboxLine::new("#foobar".to_string()),
+            ScrapboxLine::new("#Hoge Fuga".to_string()),
+        ])
+        .to_text();
+        let md = ToMd::new(text).convert();
+        let expected = "[foobar](./foobar)\n[Hoge](./Hoge) Fuga\n";
+        assert_eq!(expected, &md[..]);
+    }
+
+    #[test]
     fn test_strong() {
         let text =
             ScrapboxPage::new(vec![ScrapboxLine::new("This is a [* Test].".to_string())]).to_text();
@@ -146,10 +158,22 @@ mod tests {
     }
 
     #[test]
-    fn text_new_by_text() {
+    fn test_new_by_text() {
         let text = "- this is a [* test]. In details, [https://example.com/ link] should be shown. [https://scrapbox.io/files/test.png]";
         let md = ToMd::new(text.to_string()).convert();
         let expected = "- this is a **test**. In details, [link](https://example.com/) should be shown. ![](https://scrapbox.io/files/test.png)\n";
+        assert_eq!(expected, &md[..]);
+    }
+
+    #[test]
+    fn test_new_from_lines() {
+        let lines = [
+            "- this is a [* test].".to_string(),
+            "In details, [https://example.com/ link] should be shown.".to_string(),
+            "[https://scrapbox.io/files/test.png]".to_string(),
+        ];
+        let md = ToMd::new_from_lines(lines.to_vec()).convert();
+        let expected = "- this is a **test**.\nIn details, [link](https://example.com/) should be shown.\n![](https://scrapbox.io/files/test.png)\n";
         assert_eq!(expected, &md[..]);
     }
 }
